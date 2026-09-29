@@ -1,0 +1,111 @@
+# Databricks Asset Bundle — publica os notebooks do workshop e cria os jobs dos Passos 8 e 9.
+#   databricks bundle deploy -p <perfil>
+# Depois, no workspace: Jobs & Pipelines › job › ▶ Run now   (ou: databricks bundle run <job> -p <perfil>)
+#
+#   passo8_simulacao_continua   ▶ 10 OS/min no Lakebase + enriquecimento contínuo (gold + synced tables)
+#   passo9_carga_leitura        ▶ 20 conexões simultâneas de SELECT
+#   atalho_passos_0_a_5         (opcional) roda os Passos 0 → 5 em sequência — para ensaiar a demo
+bundle:
+  name: lakebase-energia-workshop
+
+variables:
+  catalogo:
+    description: 👉 Catálogo UC onde o schema Delta do workshop será criado
+    default: gabriel_dev
+  schema:
+    default: lakebase_workshop
+  projeto_lakebase:
+    default: energia-workshop
+  database:
+    default: energia
+  catalogo_lakebase:
+    default: energia_lakebase
+  warehouse_id:
+    description: SQL Warehouse serverless (vazio = detecta automaticamente)
+    default: ""
+
+sync:
+  exclude:
+    - app/frontend/**
+    - "**/.venv/**"
+    - "**/node_modules/**"
+    - "**/__pycache__/**"
+    - scripts/**
+
+x-parametros: &parametros
+  - { name: catalogo, default: "${var.catalogo}" }
+  - { name: schema, default: "${var.schema}" }
+  - { name: projeto_lakebase, default: "${var.projeto_lakebase}" }
+  - { name: database, default: "${var.database}" }
+  - { name: catalogo_lakebase, default: "${var.catalogo_lakebase}" }
+  - { name: warehouse_id, default: "${var.warehouse_id}" }
+
+resources:
+  jobs:
+    passo8_simulacao_continua:
+      name: "Passo 8 · Simulação contínua — 10 OS/min + enriquecimento (${var.projeto_lakebase})"
+      description: >-
+        Duas tarefas em paralelo: simular_operacao grava OS no Lakebase e anda o fluxo (PT, execução, conclusão);
+        enriquecimento_continuo recalcula o gold via Unity Catalog e atualiza as synced tables em loop.
+        Pare com Cancel run (ou ajuste duracao_min).
+      max_concurrent_runs: 1
+      parameters:
+        - { name: catalogo, default: "${var.catalogo}" }
+        - { name: schema, default: "${var.schema}" }
+        - { name: projeto_lakebase, default: "${var.projeto_lakebase}" }
+        - { name: database, default: "${var.database}" }
+        - { name: catalogo_lakebase, default: "${var.catalogo_lakebase}" }
+        - { name: warehouse_id, default: "${var.warehouse_id}" }
+        - { name: os_por_minuto, default: "10" }
+        - { name: avancos_por_minuto, default: "60" }
+        - { name: intervalo_min, default: "1" }
+        - { name: duracao_min, default: "60" }
+      tasks:
+        - task_key: simular_operacao
+          notebook_task: { notebook_path: ./08_Simulacao_Continua/08a_simulador_operacao.py }
+        - task_key: enriquecimento_continuo
+          notebook_task: { notebook_path: ./08_Simulacao_Continua/08b_enriquecimento_continuo.py }
+
+    passo9_carga_leitura:
+      name: "Passo 9 · Carga de leitura — 20 conexões simultâneas (${var.projeto_lakebase})"
+      max_concurrent_runs: 1
+      parameters:
+        - { name: catalogo, default: "${var.catalogo}" }
+        - { name: schema, default: "${var.schema}" }
+        - { name: projeto_lakebase, default: "${var.projeto_lakebase}" }
+        - { name: database, default: "${var.database}" }
+        - { name: catalogo_lakebase, default: "${var.catalogo_lakebase}" }
+        - { name: warehouse_id, default: "${var.warehouse_id}" }
+        - { name: conexoes, default: "20" }
+        - { name: duracao_min, default: "10" }
+        - { name: volume_historico, default: "100000" }
+      tasks:
+        - task_key: carga_leitura
+          notebook_task: { notebook_path: ./09_Carga_Leitura/09_carga_leitura.py }
+
+    atalho_passos_0_a_5:
+      name: "(atalho) Passos 0 → 5 em sequência (${var.projeto_lakebase})"
+      max_concurrent_runs: 1
+      parameters: *parametros
+      tasks:
+        - task_key: p0_dados_lakehouse
+          notebook_task: { notebook_path: ./00_Setup/01_gerar_dados_lakehouse.py }
+        - task_key: p1_projeto_lakebase
+          notebook_task: { notebook_path: ./01_Criar_Projeto_Lakebase/01_criar_projeto_lakebase.py }
+        - task_key: p2_database_e_tabelas
+          depends_on: [{ task_key: p1_projeto_lakebase }]
+          notebook_task: { notebook_path: ./02_Criar_Database_e_Tabelas/02_criar_database_e_tabelas.py }
+        - task_key: p3_unity_catalog
+          depends_on: [{ task_key: p2_database_e_tabelas }]
+          notebook_task: { notebook_path: ./03_Registrar_no_Unity_Catalog/03a_registrar_catalogo.py }
+        - task_key: p4_enriquecimento
+          depends_on: [{ task_key: p3_unity_catalog }, { task_key: p0_dados_lakehouse }]
+          notebook_task: { notebook_path: ./04_Enriquecimento_Lakehouse/04_camada_gold.py }
+        - task_key: p5_synced_tables
+          depends_on: [{ task_key: p4_enriquecimento }]
+          notebook_task: { notebook_path: ./05_Synced_Tables/05a_criar_synced_tables.py }
+
+targets:
+  dev:
+    mode: development
+    default: true

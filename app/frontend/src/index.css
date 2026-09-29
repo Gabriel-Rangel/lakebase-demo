@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 195 55% 9%;
+    --card: 0 0% 100%;
+    --card-foreground: 195 55% 9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 195 55% 9%;
+    /* Databricks orange-red #FF3621 */
+    --primary: 6 100% 56%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 20% 94%;
+    --secondary-foreground: 195 55% 12%;
+    --muted: 210 20% 95%;
+    --muted-foreground: 200 10% 40%;
+    --accent: 210 20% 94%;
+    --accent-foreground: 195 55% 12%;
+    --destructive: 0 72% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 16% 88%;
+    --input: 210 16% 84%;
+    --ring: 6 100% 56%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "tnum" 1, "cv11" 1;
+  }
+}
+
+@layer utilities {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+}
+
+/* Recharts: sem contorno de foco feio ao clicar */
+.recharts-wrapper *:focus {
+  outline: none;
+}

@@ -1,0 +1,86 @@
+# =============================================================================
+# Brickhouse Energia — app rodando FORA do Databricks, conectado ao Lakebase
+#
+#   docker compose up --build                          # produção (http://localhost:8080)
+#   docker compose run --rm seed                       # popula usuários + histórico
+#   docker compose run --rm carga --workers 16         # carga local (opcional; o Passo 9 roda no Databricks)
+#   docker compose run --rm psql                       # cliente psql no Lakebase
+#
+#   Extra 1 (branch dev lado a lado, porta 8081):
+#   APP_ENV_FILE=.env.dev FRONTEND_PORT=8081 MIGRATE_TARGET=3 docker compose -p energia-dev up -d --build
+#
+# Repare: NÃO existe serviço "postgres" aqui — o banco é o Lakebase (serverless, gerenciado).
+# O profile "local" sobe um Postgres em container só para o momento "antes / depois".
+# =============================================================================
+name: energia
+
+x-backend: &backend
+  build:
+    context: ..
+    dockerfile: app/backend/Dockerfile
+    args:
+      PIP_INDEX_URL: ${PIP_INDEX_URL:-}
+  image: brickhouse-energia-backend:latest
+  env_file: ["${APP_ENV_FILE:-.env}"]
+  environment:
+    MIGRATE_TARGET: ${MIGRATE_TARGET:-2}
+  depends_on:
+    postgres-local:
+      condition: service_healthy
+      required: false
+
+services:
+  migrate:
+    <<: *backend
+    command: ["python", "-m", "app.migrate"]
+    restart: "no"
+
+  backend:
+    <<: *backend
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  frontend:
+    build: ./frontend
+    image: brickhouse-energia-frontend:latest
+    restart: unless-stopped
+    ports: ["${FRONTEND_PORT:-8080}:80"]
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  # ---- utilitários (docker compose run --rm <serviço>) ----------------------
+  seed:
+    <<: *backend
+    profiles: [seed]
+    entrypoint: ["python", "-m", "app.seed"]
+    restart: "no"
+
+  carga:
+    <<: *backend
+    profiles: [carga]
+    entrypoint: ["python", "-m", "app.carga"]
+    restart: "no"
+
+  psql:   # cliente psql com a role nativa (PGHOST/PGUSER/PGPASSWORD do .env — padrão libpq)
+    image: postgres:17-alpine
+    profiles: [ferramentas]
+    env_file: ["${APP_ENV_FILE:-.env}"]
+    entrypoint: ["psql"]
+    restart: "no"
+
+  # ---- "antes": o Postgres em container que a Lakebase substitui -------------
+  postgres-local:
+    image: postgres:17
+    profiles: [local]
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: energia
+    volumes:
+      - ./postgres-local/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d energia"]
+      interval: 3s
+      retries: 20

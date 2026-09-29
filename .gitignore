@@ -1,0 +1,26 @@
+# Segredos / config local
+.env
+.env.*
+!.env.example
+!.env.dev.example
+!.env.local.example
+*.pem
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Databricks
+.databricks/
+
+# SO / IDE
+.DS_Store
+.idea/
+.vscode/

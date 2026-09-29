@@ -1,0 +1,46 @@
+tag,nome,tipo,unidade,sistema,criticidade,fabricante,modelo,potencia_kw,data_instalacao
+ATL-B-1101A,Bomba de Injeção de Água A,BOMBA,FPSO Atlântico,Injeção de Água,A,Hidrobomba,HB-900,2200,2015-01-24
+ATL-B-1101B,Bomba de Injeção de Água B,BOMBA,FPSO Atlântico,Injeção de Água,A,Hidrobomba,HB-900,2200,2018-04-08
+ATL-B-1201A,Bomba de Transferência de Óleo A,BOMBA,FPSO Atlântico,Exportação de Óleo,A,Hidrobomba,HB-450,900,2016-12-04
+ATL-B-1201B,Bomba de Transferência de Óleo B,BOMBA,FPSO Atlântico,Exportação de Óleo,B,Hidrobomba,HB-450,900,2022-02-19
+ATL-B-1301,Bomba de Água Produzida,BOMBA,FPSO Atlântico,Tratamento de Água,B,FluxMar,FM-300,450,2020-01-01
+ATL-K-2101A,Compressor Principal de Gás A,COMPRESSOR,FPSO Atlântico,Compressão de Gás,A,Kompressa,KC-7000,7500,2015-04-08
+ATL-K-2101B,Compressor Principal de Gás B,COMPRESSOR,FPSO Atlântico,Compressão de Gás,A,Kompressa,KC-7000,7500,2022-10-01
+ATL-K-2201,Compressor de Exportação de Gás,COMPRESSOR,FPSO Atlântico,Exportação de Gás,B,Kompressa,KC-4000,4000,2022-04-23
+ATL-TG-3101A,Turbogerador A,TURBOGERADOR,FPSO Atlântico,Geração de Energia,A,TurboVolt,TV-25,25000,2022-07-08
+ATL-TG-3101B,Turbogerador B,TURBOGERADOR,FPSO Atlântico,Geração de Energia,A,TurboVolt,TV-25,25000,2021-10-09
+ATL-TG-3101C,Turbogerador C,TURBOGERADOR,FPSO Atlântico,Geração de Energia,B,TurboVolt,TV-25,25000,2014-03-23
+ATL-V-4101,Separador de Produção,SEPARADOR,FPSO Atlântico,Processamento de Óleo,A,SepTec,ST-3F,0,2020-06-09
+ATL-V-4201,Separador de Teste,SEPARADOR,FPSO Atlântico,Processamento de Óleo,C,SepTec,ST-2F,0,2016-04-25
+ATL-E-5101,Resfriador de Gás,TROCADOR,FPSO Atlântico,Compressão de Gás,B,TermoX,TX-PL,0,2019-02-03
+ATL-E-5201,Aquecedor de Óleo,TROCADOR,FPSO Atlântico,Processamento de Óleo,C,TermoX,TX-ST,0,2020-02-12
+GUA-B-1101A,Bomba de Injeção de Água A,BOMBA,FPSO Guanabara,Injeção de Água,A,Hidrobomba,HB-900,2200,2019-10-09
+GUA-B-1101B,Bomba de Injeção de Água B,BOMBA,FPSO Guanabara,Injeção de Água,A,Hidrobomba,HB-900,2200,2014-12-15
+GUA-B-1201A,Bomba de Transferência de Óleo A,BOMBA,FPSO Guanabara,Exportação de Óleo,A,Hidrobomba,HB-450,900,2022-02-13
+GUA-B-1201B,Bomba de Transferência de Óleo B,BOMBA,FPSO Guanabara,Exportação de Óleo,B,Hidrobomba,HB-450,900,2015-09-10
+GUA-B-1301,Bomba de Água Produzida,BOMBA,FPSO Guanabara,Tratamento de Água,B,FluxMar,FM-300,450,2019-10-07
+GUA-K-2101A,Compressor Principal de Gás A,COMPRESSOR,FPSO Guanabara,Compressão de Gás,A,Kompressa,KC-7000,7500,2015-01-22
+GUA-K-2101B,Compressor Principal de Gás B,COMPRESSOR,FPSO Guanabara,Compressão de Gás,A,Kompressa,KC-7000,7500,2017-05-03
+GUA-K-2201,Compressor de Exportação de Gás,COMPRESSOR,FPSO Guanabara,Exportação de Gás,B,Kompressa,KC-4000,4000,2017-02-13
+GUA-TG-3101A,Turbogerador A,TURBOGERADOR,FPSO Guanabara,Geração de Energia,A,TurboVolt,TV-25,25000,2018-08-21
+GUA-TG-3101B,Turbogerador B,TURBOGERADOR,FPSO Guanabara,Geração de Energia,A,TurboVolt,TV-25,25000,2019-03-12
+GUA-TG-3101C,Turbogerador C,TURBOGERADOR,FPSO Guanabara,Geração de Energia,B,TurboVolt,TV-25,25000,2019-04-22
+GUA-V-4101,Separador de Produção,SEPARADOR,FPSO Guanabara,Processamento de Óleo,A,SepTec,ST-3F,0,2018-12-22
+GUA-V-4201,Separador de Teste,SEPARADOR,FPSO Guanabara,Processamento de Óleo,C,SepTec,ST-2F,0,2015-10-21
+GUA-E-5101,Resfriador de Gás,TROCADOR,FPSO Guanabara,Compressão de Gás,B,TermoX,TX-PL,0,2016-09-24
+GUA-E-5201,Aquecedor de Óleo,TROCADOR,FPSO Guanabara,Processamento de Óleo,C,TermoX,TX-ST,0,2017-03-15
+TUP-B-1101A,Bomba de Injeção de Água A,BOMBA,FPSO Tupinambá,Injeção de Água,A,Hidrobomba,HB-900,2200,2020-05-21
+TUP-B-1101B,Bomba de Injeção de Água B,BOMBA,FPSO Tupinambá,Injeção de Água,A,Hidrobomba,HB-900,2200,2022-04-22
+TUP-B-1201A,Bomba de Transferência de Óleo A,BOMBA,FPSO Tupinambá,Exportação de Óleo,A,Hidrobomba,HB-450,900,2019-01-08
+TUP-B-1201B,Bomba de Transferência de Óleo B,BOMBA,FPSO Tupinambá,Exportação de Óleo,B,Hidrobomba,HB-450,900,2014-06-13
+TUP-B-1301,Bomba de Água Produzida,BOMBA,FPSO Tupinambá,Tratamento de Água,B,FluxMar,FM-300,450,2018-02-07
+TUP-K-2101A,Compressor Principal de Gás A,COMPRESSOR,FPSO Tupinambá,Compressão de Gás,A,Kompressa,KC-7000,7500,2019-04-21
+TUP-K-2101B,Compressor Principal de Gás B,COMPRESSOR,FPSO Tupinambá,Compressão de Gás,A,Kompressa,KC-7000,7500,2021-07-21
+TUP-K-2201,Compressor de Exportação de Gás,COMPRESSOR,FPSO Tupinambá,Exportação de Gás,B,Kompressa,KC-4000,4000,2021-03-09
+TUP-TG-3101A,Turbogerador A,TURBOGERADOR,FPSO Tupinambá,Geração de Energia,A,TurboVolt,TV-25,25000,2016-04-24
+TUP-TG-3101B,Turbogerador B,TURBOGERADOR,FPSO Tupinambá,Geração de Energia,A,TurboVolt,TV-25,25000,2022-09-09
+TUP-TG-3101C,Turbogerador C,TURBOGERADOR,FPSO Tupinambá,Geração de Energia,B,TurboVolt,TV-25,25000,2020-10-13
+TUP-V-4101,Separador de Produção,SEPARADOR,FPSO Tupinambá,Processamento de Óleo,A,SepTec,ST-3F,0,2019-04-05
+TUP-V-4201,Separador de Teste,SEPARADOR,FPSO Tupinambá,Processamento de Óleo,C,SepTec,ST-2F,0,2022-08-03
+TUP-E-5101,Resfriador de Gás,TROCADOR,FPSO Tupinambá,Compressão de Gás,B,TermoX,TX-PL,0,2014-02-05
+TUP-E-5201,Aquecedor de Óleo,TROCADOR,FPSO Tupinambá,Processamento de Óleo,C,TermoX,TX-ST,0,2016-11-14
