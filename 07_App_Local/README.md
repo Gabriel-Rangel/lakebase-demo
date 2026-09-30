@@ -22,7 +22,7 @@ Preencha (👉 **ALTERE**):
 
 | Variável | Valor | Onde encontrar |
 |---|---|---|
-| `DATABRICKS_HOST` | `https://adb-….azuredatabricks.net` | URL do workspace |
+| `DATABRICKS_HOST` | `https://adb-….azuredatabricks.net` | URL do **workspace** — ⚠️ não a URL de login/SSO do navegador (ex.: `oneenv…`). Confira com `databricks auth profiles` ou o `host` em `~/.databrickscfg` |
 | `DATABRICKS_CLIENT_ID` | UUID | Passo 6a (Client ID do `energia-app-sp`) |
 | `DATABRICKS_CLIENT_SECRET` | secret | Passo 6a (aparece uma vez) |
 | `PGHOST` | `ep-….database.<região>.azuredatabricks.net` | Passo 1.3 — branch `production` › **Connect** |
@@ -31,6 +31,8 @@ Preencha (👉 **ALTERE**):
 | `PIP_INDEX_URL` | proxy PyPI da Databricks | já preenchido (VPN). Fora da VPN, apague a linha |
 
 > 🔐 No modo `oauth` **não existe senha de banco** no `.env` — só a identidade do app. O backend gera o token do Lakebase (1 h) e o renova sozinho.
+>
+> ⚠️ Preencha **somente o `app/.env`** (ignorado pelo git). Nunca coloque valores reais no `.env.example` — ele é versionado.
 
 Checagem de rede (443 para o workspace, 5432 para o Lakebase):
 ```bash

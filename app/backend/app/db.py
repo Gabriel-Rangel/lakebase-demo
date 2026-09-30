@@ -101,7 +101,13 @@ class _TokenLakebase:
         with self._lock:
             agora = datetime.now(timezone.utc)
             if self.token is None or self.expira_em is None or self.expira_em - agora < self.MARGEM:
-                cred = workspace().postgres.generate_database_credential(endpoint=endpoint_lakebase())
+                try:
+                    cred = workspace().postgres.generate_database_credential(endpoint=endpoint_lakebase())
+                except ValueError as e:  # resposta não-JSON: quase sempre DATABRICKS_HOST errado (URL de login/SSO)
+                    raise RuntimeError(
+                        f"A API do Databricks em {os.getenv('DATABRICKS_HOST')} não respondeu JSON. Use a URL do "
+                        "WORKSPACE (https://adb-<id>.<n>.azuredatabricks.net), não a URL de login do navegador."
+                    ) from e
                 self.token = cred.token
                 self.expira_em = (
                     cred.expire_time.ToDatetime(tzinfo=timezone.utc) if cred.expire_time else agora + timedelta(hours=1)

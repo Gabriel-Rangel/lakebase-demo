@@ -5,6 +5,7 @@ Postgres local, num Postgres em container ou no Lakebase — muda só a configur
 """
 from typing import Literal, Optional
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -41,6 +42,16 @@ class Settings(BaseSettings):
 
     app_ambiente: str = "produção"
     dados_equipamentos_csv: str = "/app/dados/equipamentos.csv"
+
+    @field_validator("lakebase_endpoint", "pghost", "pguser", "pgpassword", mode="before")
+    @classmethod
+    def _vazio_se_comentario(cls, valor):
+        # "VAR=   # comentário" num .env pode chegar como o próprio comentário — tratamos como vazio
+        if isinstance(valor, str):
+            valor = valor.strip()
+            if not valor or valor.startswith("#"):
+                return None
+        return valor
 
 
 settings = Settings()

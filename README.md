@@ -254,6 +254,7 @@ Atalhos:
 | App mostra "Lakebase acordando…" | compute voltando do scale-to-zero — o app tenta de novo sozinho (1ª conexão ~1 s) |
 | Badge "CSV local" depois do Passo 5 | falta o GRANT do Passo 5.2, ou `PG_SCHEMA_ANALITICO` não é o schema das synced tables |
 | `password authentication failed` no modo `oauth` | SP sem **CAN USE** no projeto ou sem role OAuth → refaça o Passo 6b |
+| `migrate` falha com `JSONDecodeError` / "não respondeu JSON" | `DATABRICKS_HOST` com a URL de login do navegador — use a URL do workspace `https://adb-….azuredatabricks.net` |
 | `migrate` falha com "must be owner" | as tabelas do Passo 2 não ficaram com dono `energia_app` → confira a consulta do Passo 2.4 |
 | `docker compose build` falha no `pip install`/`npm ci` | VPN desligada (proxies internos) |
 | Porta 5432 bloqueada | libere a saída TCP 5432 para `*.database.<região>.azuredatabricks.net` (`scripts/checar_conectividade.sh`) |
