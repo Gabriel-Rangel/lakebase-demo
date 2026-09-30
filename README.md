@@ -105,7 +105,8 @@ flowchart LR
 
 ### ⚙️ Passo 0 — Notebooks no workspace e dados do Lakehouse
 1. Traga o repositório para o workspace:
-   - **Opção A (recomendada):** **Workspace** › **Create** › **Git folder** › URL do repositório.
+   - **Opção A (recomendada):** **Workspace** › **Create** › **Git folder** › URL `https://github.com/Gabriel-Rangel/lakebase-demo`
+     (repositório público, não precisa de credencial do GitHub).
    - **Opção B (sem Git):** no terminal, importe só as pastas com notebooks e dados:
      ```bash
      for d in 00_Setup 03_Registrar_no_Unity_Catalog 04_Enriquecimento_Lakehouse 05_Synced_Tables 99_Cleanup dados; do
