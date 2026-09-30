@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import threading
 import time
 from contextlib import contextmanager
@@ -58,6 +59,33 @@ def workspace():
         return _workspace
 
 
+_endpoint_resolvido: Optional[str] = None
+
+
+def endpoint_lakebase() -> Optional[str]:
+    """Caminho do endpoint (projects/<id>/branches/<id>/endpoints/<id>).
+
+    Usa LAKEBASE_ENDPOINT se definido; senão descobre pelo PGHOST (o host copiado do diálogo Connect)
+    varrendo os projetos que a identidade enxerga — o resultado fica em cache.
+    """
+    global _endpoint_resolvido
+    if settings.lakebase_endpoint:
+        return settings.lakebase_endpoint
+    if _endpoint_resolvido or not (settings.pghost and tem_credencial_databricks()):
+        return _endpoint_resolvido
+    pg = workspace().postgres
+    for projeto in pg.list_projects():
+        for branch in pg.list_branches(parent=projeto.name):
+            for ep in pg.list_endpoints(parent=branch.name):
+                hosts = ep.status.hosts if ep.status else None
+                if hosts and settings.pghost in (hosts.host, hosts.read_write_pooled_host):
+                    _endpoint_resolvido = ep.name
+                    log.info("🔎 endpoint descoberto pelo PGHOST: %s", ep.name)
+                    return ep.name
+    raise RuntimeError(f"Nenhum endpoint Lakebase visível com host {settings.pghost} — confira PGHOST, "
+                       "o CAN_USE do Service Principal no projeto ou defina LAKEBASE_ENDPOINT")
+
+
 class _TokenLakebase:
     """Cache do token OAuth do Lakebase — renova quando faltam menos de 5 minutos."""
 
@@ -73,7 +101,7 @@ class _TokenLakebase:
         with self._lock:
             agora = datetime.now(timezone.utc)
             if self.token is None or self.expira_em is None or self.expira_em - agora < self.MARGEM:
-                cred = workspace().postgres.generate_database_credential(endpoint=settings.lakebase_endpoint)
+                cred = workspace().postgres.generate_database_credential(endpoint=endpoint_lakebase())
                 self.token = cred.token
                 self.expira_em = (
                     cred.expire_time.ToDatetime(tzinfo=timezone.utc) if cred.expire_time else agora + timedelta(hours=1)
@@ -102,7 +130,7 @@ def _host_postgres() -> str:
         return settings.pghost
     if settings.lakebase_endpoint and tem_credencial_databricks():
         return workspace().postgres.get_endpoint(name=settings.lakebase_endpoint).status.hosts.host
-    raise RuntimeError("Defina PGHOST (ou LAKEBASE_ENDPOINT com credenciais Databricks)")
+    raise RuntimeError("Defina PGHOST (host do diálogo Connect do Lakebase)")
 
 
 class LakebaseConnection(psycopg.Connection):
@@ -264,11 +292,20 @@ def schema_version() -> int:
     return em_cache("schema_version", 15, _ler)
 
 
-TABELAS_SYNCED = ("equipamentos", "saude_equipamentos", "kpis_manutencao", "telemetria_diaria")
+TABELAS_SYNCED = ("cadastro_equipamentos", "saude_equipamentos", "kpis_manutencao", "telemetria_diaria")
+
+if not re.fullmatch(r"[a-z_][a-z0-9_]*", settings.pg_schema_analitico):
+    raise ValueError(f"PG_SCHEMA_ANALITICO inválido: {settings.pg_schema_analitico!r}")
+SCHEMA_ANALITICO = settings.pg_schema_analitico
+
+
+def synced(nome: str) -> str:
+    """Nome qualificado de uma synced table no Postgres (schema validado acima)."""
+    return f'"{SCHEMA_ANALITICO}".{nome}'
 
 
 def tabelas_analiticas() -> dict[str, dict[str, bool]]:
-    """Synced tables do schema `analitico`: existem? o app tem SELECT nelas?
+    """Synced tables (schema PG_SCHEMA_ANALITICO): existem? o app tem SELECT nelas?
 
     Usa o catálogo (pg_class) — funciona mesmo sem USAGE no schema, antes do GRANT do Passo 5.
     """
@@ -281,10 +318,10 @@ def tabelas_analiticas() -> dict[str, dict[str, bool]]:
                    COALESCE(c.oid IS NOT NULL AND has_schema_privilege(n.oid, 'USAGE')
                             AND has_table_privilege(c.oid, 'SELECT'), false) AS disponivel
             FROM unnest(%s::text[]) AS t(nome)
-            LEFT JOIN pg_namespace n ON n.nspname = 'analitico'
+            LEFT JOIN pg_namespace n ON n.nspname = %s
             LEFT JOIN pg_class c ON c.relnamespace = n.oid AND c.relname = t.nome
             """,
-            (list(TABELAS_SYNCED),),
+            (list(TABELAS_SYNCED), SCHEMA_ANALITICO),
         )
         return {l["nome"]: {"existe": bool(l["existe"]), "disponivel": bool(l["disponivel"])} for l in linhas}
 

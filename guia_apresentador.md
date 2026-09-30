@@ -11,9 +11,9 @@
 |---|---|---|
 | ☐ | VPN Databricks ligada | proxies de PyPI/npm usados no build |
 | ☐ | Docker rodando | `colima start --cpu 4 --memory 6` · `docker info` |
-| ☐ | Notebooks e jobs publicados | `databricks bundle deploy -p <perfil>` |
+| ☐ | Notebooks no workspace e jobs publicados | Passo 0 (Git folder) · `databricks bundle deploy -p <perfil>` (só os jobs 8 e 9) |
 | ☐ | Imagens construídas com antecedência | `cp app/.env.example app/.env` (já traz o proxy de PyPI da VPN) e `cd app && docker compose build` |
-| ☐ | Decidir: **ao vivo do zero** ou **pré-provisionado** | do zero: rode `99_Cleanup` antes · pré-provisionado: job `(atalho) Passos 0 → 5` |
+| ☐ | Decidir: **ao vivo do zero** ou **pré-provisionado** | do zero: tudo pela UI na frente do cliente · pré-provisionado: faça os Passos 0–6 na véspera e mostre as telas |
 | ☐ | Service Principal criado e secret no `app/.env` | Passo 6 (o secret aparece uma vez — tenha-o à mão) |
 | ☐ | Rede no local da apresentação: 443 e **5432** | `./scripts/checar_conectividade.sh` — plano B: hotspot |
 | ☐ | Abas abertas | app `:8080` · projeto Lakebase (aba Monitoring) · SQL Editor · Jobs (Passos 8 e 9) · Catalog Explorer |
@@ -26,12 +26,12 @@
 | Passo | Slides | O que mostrar | Frase-chave |
 |---|---|---|---|
 | **0** | 2–9 (apps evoluíram, bancos não) | `app/docker-compose.yml`: **não há serviço `postgres`**; telemetria e cadastro já no Lakehouse | *"O compose de vocês continua igual — só o banco sai de dentro dele."* |
-| **1 (a)** | 10–13, 16–17 | projeto criado em segundos: Postgres 17, 0,5–4 CU, scale-to-zero, storage separado do compute | *"Postgres gerenciado, serverless — sem VM, sem patch, sem backup para administrar."* |
-| **2 (b)** | 14–15 (por que Postgres) | database, roles, `CHECK`/`UNIQUE` parcial/`version`, seed em SQL puro — tudo no SQL Editor | *"É Postgres de verdade: o que o time já sabe continua valendo."* |
-| **3 (c)** | 23 (zero ETL), 37 (formas de conexão) | catálogo `energia_lakebase` no Catalog Explorer; `SELECT` no SQL Editor; JOIN com a telemetria Delta | *"O transacional está no Lakehouse — sem pipeline, sem cópia, com a governança do UC."* |
+| **1 (a)** | 10–13, 16–17 | **New project** na UI em segundos; aba **Computes**: 0,5–4 CU, scale-to-zero; storage separado do compute | *"Postgres gerenciado, serverless — sem VM, sem patch, sem backup para administrar."* |
+| **2 (b)** | 14–15 (por que Postgres) | **Add database** na UI; roles, `CHECK`/`UNIQUE` parcial/`version` e seed em SQL puro — tudo no **SQL Editor** do Lakebase | *"É Postgres de verdade: o que o time já sabe continua valendo."* |
+| **3 (c)** | 23 (zero ETL), 37 (formas de conexão) | **Create a catalog** › *Lakebase Postgres* na UI; `SELECT` no SQL Editor; JOIN com a telemetria Delta | *"O transacional está no Lakehouse — sem pipeline, sem cópia, com a governança do UC."* |
 | **4 (d)** | 24 (casos de uso analíticos) | health score e KPIs; `ATL-K-2101A` crítico | *"Inteligência gerada juntando o que o app grava com o que os sensores medem."* |
-| **5 (e)** | 24 (servir dados do Lakehouse), 27/29 | 4 synced tables `ONLINE`; `SELECT` no Postgres já traz o risco | *"Reverse ETL sem código: o Lakehouse devolve inteligência para o app."* |
-| **6 (f, e′)** | 33–35 (segurança) | SP + secret; `CAN_USE`; `databricks_create_role`; `GRANT energia_app` | *"O app não tem senha de banco: tem uma identidade do workspace, governada e auditável."* |
+| **5 (e)** | 24 (servir dados do Lakehouse), 27/29 | **Create › Synced table** na UI (4×); `SELECT` no Postgres já traz o risco | *"Reverse ETL sem código: o Lakehouse devolve inteligência para o app."* |
+| **6 (f, e′)** | 33–35 (segurança) | SP + secret (UI); **Project permissions** › CAN USE; **Add role › OAuth**; `GRANT energia_app` | *"O app não tem senha de banco: tem uma identidade do workspace, governada e auditável."* |
 | **7 (g)** | 5 (apps stateless) | `.env` com client id/secret + host; `docker compose build && up` | *"Mesmo fluxo de deploy de hoje."* |
 | **7 (h)** | 24/26 (workflow, aprovação) | Conexão Lakebase → Painel → equipamento crítico → **Criar OS preditiva** → 409 em duas abas → PT com segregação de funções → OS no SQL Editor | *"Transacional crítico, regras no banco — e o insight vira ação em um clique."* |
 | **8 (i)** | 23, 24 | ▶ job: OS chegando no Painel e no kanban; a cada volta, backlog/MTTR/risco mudam | *"O loop transacional ⇄ analítico, contínuo, numa plataforma só."* |
@@ -40,7 +40,7 @@
 
 ---
 
-## 3. Versão curta (30 min, com Passos 0 → 6 pré-provisionados)
+## 3. Versão curta (30 min, com Passos 0 → 6 feitos na véspera)
 
 1. **(3 min)** `docker-compose.yml` sem Postgres + projeto Lakebase na UI (endpoint, CU, scale-to-zero).
 2. **(5 min)** Passo 7: `docker compose up` → página **Conexão** → Painel.

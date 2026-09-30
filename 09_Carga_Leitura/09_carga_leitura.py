@@ -9,7 +9,7 @@
 # MAGIC |---|---|
 # MAGIC | KPIs do painel · lista de OS paginada · OS por id | leituras OLTP curtas (índices) |
 # MAGIC | backlog/MTTR por equipamento · busca textual | agregações e *scans* (CPU) |
-# MAGIC | equipamentos + saúde · KPIs do Lakehouse | leitura das **synced tables** (`analitico.*`) |
+# MAGIC | equipamentos + saúde · KPIs do Lakehouse | leitura das **synced tables** (Passo 5) |
 # MAGIC
 # MAGIC **O que observar enquanto roda**
 # MAGIC 1. Lakebase › projeto › branch `production` › **Monitoring**: CPU/RAM *allocated* subindo (autoscaling até 4 CU), conexões abertas, TPS.
@@ -66,7 +66,7 @@ if faltam:
            t.id, x.abertura, x.abertura + interval '6 hours', x.abertura + interval '6 hours' + x.duracao,
            round((extract(epoch FROM x.duracao) / 3600)::numeric, 2), x.abertura + interval '6 hours' + x.duracao
     FROM generate_series(1, {faltam}) AS g
-    CROSS JOIN LATERAL (SELECT tag, unidade, nome FROM {SCHEMA_ANALITICO}.equipamentos WHERE g > 0 ORDER BY random() LIMIT 1) e
+    CROSS JOIN LATERAL (SELECT tag, unidade, nome FROM {SCHEMA_ANALITICO}.cadastro_equipamentos WHERE g > 0 ORDER BY random() LIMIT 1) e
     CROSS JOIN LATERAL (SELECT id FROM operacao.usuarios WHERE papel = 'TECNICO' AND unidade = e.unidade ORDER BY random() LIMIT 1) t
     CROSS JOIN LATERAL (SELECT now() - make_interval(days => 91 + floor(random() * 1000)::int) AS abertura,
                                make_interval(secs => (2 + random() * 28) * 3600) AS duracao WHERE g > 0) x
@@ -115,7 +115,7 @@ CONSULTAS = [
         ORDER BY data_abertura DESC LIMIT 50""",
      lambda: {"termo": f"%{random.choice(['vibração', 'vazamento', 'filtro', 'rolamento', 'calibração', 'turbogerador'])}%"}),
     ("equipamentos_saude_synced", 10, f"""
-        SELECT e.tag, e.nome, s.health_score, s.risco FROM {SCHEMA_ANALITICO}.equipamentos e
+        SELECT e.tag, e.nome, s.health_score, s.risco FROM {SCHEMA_ANALITICO}.cadastro_equipamentos e
         LEFT JOIN {SCHEMA_ANALITICO}.saude_equipamentos s USING (tag) ORDER BY s.health_score""",
      lambda: {}),
     ("kpis_lakehouse_synced", 5, f"""
@@ -206,5 +206,5 @@ print(f"🐘 endpoint {st.current_state.value if st.current_state else '?'} · a
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ✅ **Fim do roteiro!** Extras: [branching + migração](../Extras/E1_branching_migracao) · [scale-to-zero](../Extras/E2_scale_to_zero).
+# MAGIC ✅ **Fim do roteiro!** Extras (branching + migração, scale-to-zero): `Extras/README.md`.
 # MAGIC Limpeza: [`99_Cleanup/99_limpeza`](../99_Cleanup/99_limpeza).

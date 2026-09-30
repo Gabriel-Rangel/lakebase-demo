@@ -1,44 +1,50 @@
-# Databricks Asset Bundle — publica os notebooks do workshop e cria os jobs dos Passos 8 e 9.
+# Databricks Asset Bundle — SOMENTE os jobs dos Passos 8 e 9 (todo o resto do roteiro é feito pela UI).
 #   databricks bundle deploy -p <perfil>
 # Depois, no workspace: Jobs & Pipelines › job › ▶ Run now   (ou: databricks bundle run <job> -p <perfil>)
 #
 #   passo8_simulacao_continua   ▶ 10 OS/min no Lakebase + enriquecimento contínuo (gold + synced tables)
 #   passo9_carga_leitura        ▶ 20 conexões simultâneas de SELECT
-#   atalho_passos_0_a_5         (opcional) roda os Passos 0 → 5 em sequência — para ensaiar a demo
+#
+# 👉 ALTERE as variáveis abaixo se você usou outros nomes nos Passos 0–5 (ou passe --var no deploy).
 bundle:
   name: lakebase-energia-workshop
 
 variables:
   catalogo:
-    description: 👉 Catálogo UC onde o schema Delta do workshop será criado
+    description: Catálogo UC do schema Delta do workshop (Passo 0)
     default: gabriel_dev
   schema:
+    description: Schema Delta do workshop — e schema das synced tables (Passo 5)
     default: lakebase_workshop
   projeto_lakebase:
+    description: Nome (ou ID) do projeto Lakebase criado na UI (Passo 1)
     default: energia-workshop
   database:
     default: energia
   catalogo_lakebase:
+    description: Catálogo UC criado na UI no Passo 3
     default: energia_lakebase
   warehouse_id:
     description: SQL Warehouse serverless (vazio = detecta automaticamente)
     default: ""
 
+# Publica apenas os notebooks que os jobs executam
 sync:
   exclude:
-    - app/frontend/**
-    - "**/.venv/**"
-    - "**/node_modules/**"
+    - "01_*/**"
+    - "02_*/**"
+    - "03_*/**"
+    - "05_*/**"
+    - "06_*/**"
+    - "07_*/**"
+    - "99_Cleanup/**"
+    - "Extras/**"
+    - "app/**"
+    - "dados/**"
+    - "scripts/**"
+    - "*.md"
+    - ".dockerignore"
     - "**/__pycache__/**"
-    - scripts/**
-
-x-parametros: &parametros
-  - { name: catalogo, default: "${var.catalogo}" }
-  - { name: schema, default: "${var.schema}" }
-  - { name: projeto_lakebase, default: "${var.projeto_lakebase}" }
-  - { name: database, default: "${var.database}" }
-  - { name: catalogo_lakebase, default: "${var.catalogo_lakebase}" }
-  - { name: warehouse_id, default: "${var.warehouse_id}" }
 
 resources:
   jobs:
@@ -82,28 +88,6 @@ resources:
       tasks:
         - task_key: carga_leitura
           notebook_task: { notebook_path: ./09_Carga_Leitura/09_carga_leitura.py }
-
-    atalho_passos_0_a_5:
-      name: "(atalho) Passos 0 → 5 em sequência (${var.projeto_lakebase})"
-      max_concurrent_runs: 1
-      parameters: *parametros
-      tasks:
-        - task_key: p0_dados_lakehouse
-          notebook_task: { notebook_path: ./00_Setup/01_gerar_dados_lakehouse.py }
-        - task_key: p1_projeto_lakebase
-          notebook_task: { notebook_path: ./01_Criar_Projeto_Lakebase/01_criar_projeto_lakebase.py }
-        - task_key: p2_database_e_tabelas
-          depends_on: [{ task_key: p1_projeto_lakebase }]
-          notebook_task: { notebook_path: ./02_Criar_Database_e_Tabelas/02_criar_database_e_tabelas.py }
-        - task_key: p3_unity_catalog
-          depends_on: [{ task_key: p2_database_e_tabelas }]
-          notebook_task: { notebook_path: ./03_Registrar_no_Unity_Catalog/03a_registrar_catalogo.py }
-        - task_key: p4_enriquecimento
-          depends_on: [{ task_key: p3_unity_catalog }, { task_key: p0_dados_lakehouse }]
-          notebook_task: { notebook_path: ./04_Enriquecimento_Lakehouse/04_camada_gold.py }
-        - task_key: p5_synced_tables
-          depends_on: [{ task_key: p4_enriquecimento }]
-          notebook_task: { notebook_path: ./05_Synced_Tables/05a_criar_synced_tables.py }
 
 targets:
   dev:

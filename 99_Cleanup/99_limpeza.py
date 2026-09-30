@@ -45,9 +45,9 @@ def tentar(descricao, fn):
         print(f"⚠️ {descricao}: {str(e)[:200]}")
 
 # 1. synced tables
-for nome in ("equipamentos", "saude_equipamentos", "kpis_manutencao", "telemetria_diaria"):
+for nome in SYNCED:
     tentar(f"synced table {nome}",
-           lambda n=nome: w.postgres.delete_synced_table(name=f"synced_tables/{CATALOGO_LAKEBASE}.{SCHEMA_ANALITICO}.{n}").wait())
+           lambda n=nome: w.postgres.delete_synced_table(name=f"synced_tables/{CATALOGO}.{SCHEMA}.{n}").wait())
 
 # 2. catálogo do Lakebase no UC
 tentar(f"catálogo {CATALOGO_LAKEBASE}", lambda: w.postgres.delete_catalog(name=f"catalogs/{CATALOGO_LAKEBASE}").wait())

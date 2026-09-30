@@ -7,7 +7,7 @@ Repare no [`app/docker-compose.yml`](../app/docker-compose.yml): **não existe s
 ┌──────────── seu servidor (Docker) ─────────────┐                 ┌──────────── Databricks ────────────┐
 │ frontend (nginx :8080) ─► backend (FastAPI) ───┼── Postgres ────►│ Lakebase · energia-workshop        │
 │                          migrate (1x)          │   TLS · OAuth   │  operacao.*  (escrito pelo app)    │
-└────────────────────────────────────────────────┘   (SP Passo 6)  │  analitico.* (synced do Lakehouse) │
+└────────────────────────────────────────────────┘   (SP Passo 6)  │  lakebase_workshop.* (synced)      │
                                                                     └────────────────────────────────────┘
 ```
 ⏱️ 20 min · terminal, a partir da raiz do repositório · pré-requisitos: Docker Engine + Compose (Mac: `colima start`), VPN.
@@ -25,8 +25,9 @@ Preencha (👉 **ALTERE**):
 | `DATABRICKS_HOST` | `https://adb-….azuredatabricks.net` | URL do workspace |
 | `DATABRICKS_CLIENT_ID` | UUID | Passo 6a (Client ID do `energia-app-sp`) |
 | `DATABRICKS_CLIENT_SECRET` | secret | Passo 6a (aparece uma vez) |
-| `LAKEBASE_ENDPOINT` | `projects/energia-workshop/branches/production/endpoints/primary` | já preenchido |
-| `PGHOST` | `ep-….database.<região>.azuredatabricks.net` | saída do Passo 1.2, botão **Connect** do projeto ou `databricks postgres get-endpoint projects/energia-workshop/branches/production/endpoints/primary -o json` |
+| `PGHOST` | `ep-….database.<região>.azuredatabricks.net` | Passo 1.3 — branch `production` › **Connect** |
+| `PG_SCHEMA_ANALITICO` | `lakebase_workshop` | já preenchido — schema das synced tables (Passo 5) |
+| `LAKEBASE_ENDPOINT` | *(vazio)* | opcional — o app descobre o endpoint pelo `PGHOST` |
 | `PIP_INDEX_URL` | proxy PyPI da Databricks | já preenchido (VPN). Fora da VPN, apague a linha |
 
 > 🔐 No modo `oauth` **não existe senha de banco** no `.env` — só a identidade do app. O backend gera o token do Lakebase (1 h) e o renova sozinho.
@@ -50,7 +51,7 @@ docker compose build
 ```bash
 docker compose up -d
 docker compose ps                 # migrate: exited (0) · backend: healthy · frontend: running
-docker compose logs migrate       # ✔ 001 e 002 "já aplicadas" — o Passo 2 usou as MESMAS migrações
+docker compose logs migrate       # "conectado como <client-id do SP>" · ✔ 001 e 002 "já aplicadas" (Passo 2 usou as MESMAS migrações)
 ```
 Abra **http://localhost:8080**. ✅ Header: `branch: production` · `OAuth M2M` · `schema v2`.
 
@@ -69,7 +70,8 @@ Abra **http://localhost:8080**. ✅ Header: `branch: production` · `OAuth M2M` 
 | 7 | **SQL Editor** (workspace) | `SELECT * FROM energia_lakebase.operacao.ordens_servico ORDER BY data_abertura DESC LIMIT 5` | *"A OS que acabei de criar já está no Unity Catalog — sem ETL."* |
 
 ## 7.5 · (Opcional) "Vocês só trocam a connection string"
-Com a senha da role `app_energia` definida no Passo 6b (opcional), preencha `PGUSER=app_energia` / `PGPASSWORD=…` no `.env` e:
+Com a role `app_energia` criada no Passo 6 (opcional — **Add role › Password**, senha gerada pela UI), preencha
+`PGUSER=app_energia` / `PGPASSWORD=<senha gerada>` no `.env` e:
 ```bash
 sed -i.bak 's/^LAKEBASE_AUTH_MODE=oauth/LAKEBASE_AUTH_MODE=password/' .env && docker compose up -d
 docker compose run --rm psql -c "SELECT current_user, count(*) FROM operacao.ordens_servico"
@@ -85,7 +87,7 @@ Página **Conexão**: modo **Senha nativa**. Volte com `mv .env.bak .env && dock
 |---|---|
 | [`app/backend/app/db.py`](../app/backend/app/db.py) | `LakebaseConnection.connect()` injeta o token OAuth como senha; pool recicla conexões a cada 45 min; leituras em autocommit (1 round-trip) |
 | [`app/backend/app/services/ordens.py`](../app/backend/app/services/ordens.py) | `SELECT … FOR UPDATE`, `version`, histórico gravado na mesma transação |
-| [`app/backend/app/services/equipamentos.py`](../app/backend/app/services/equipamentos.py) | lê `analitico.*` (synced tables) — antes do Passo 5, cai para o CSV |
+| [`app/backend/app/services/equipamentos.py`](../app/backend/app/services/equipamentos.py) | lê as synced tables (`PG_SCHEMA_ANALITICO`) — antes do Passo 5, cai para o CSV |
 | [`app/API.md`](../app/API.md) | contrato da API |
 
 ✅ **Checkpoint:** app no ar em http://localhost:8080 com dados do Lakebase e do Lakehouse.

@@ -8,9 +8,9 @@
 # MAGIC |---|---|---|
 # MAGIC | `catalogo` | `gabriel_dev` | 👉 **ALTERE** para um catálogo UC onde você tenha `CREATE SCHEMA` |
 # MAGIC | `schema` | `lakebase_workshop` | schema Delta (Lakehouse) do workshop |
-# MAGIC | `projeto_lakebase` | `energia-workshop` | projeto Lakebase Autoscaling |
+# MAGIC | `projeto_lakebase` | `energia-workshop` | **nome ou ID** do projeto Lakebase criado na UI (Passo 1) |
 # MAGIC | `database` | `energia` | database Postgres dentro do projeto |
-# MAGIC | `catalogo_lakebase` | `energia_lakebase` | catálogo UC que "espelha" o database Postgres |
+# MAGIC | `catalogo_lakebase` | `energia_lakebase` | nome do catálogo criado na UI no Passo 3 ("espelha" o database Postgres) |
 # MAGIC | `warehouse_id` | *(auto)* | SQL Warehouse **serverless** — detectado automaticamente se vazio |
 # MAGIC | `sufixo_usuario` | `nao` | `sim` = acrescenta seu usuário aos nomes (várias pessoas no mesmo workspace) |
 # MAGIC
@@ -44,7 +44,15 @@ ENDPOINT_PROD = f"{BRANCH_PROD}/endpoints/primary"
 
 # Schemas Postgres — OLTP e synced tables NUNCA no mesmo schema
 SCHEMA_OLTP = "operacao"        # escrito pelo app
-SCHEMA_ANALITICO = "analitico"  # synced tables (Lakehouse → Lakebase), somente leitura
+# Synced tables (Passo 5, criadas na UI) ficam no MESMO schema UC das tabelas Delta de origem;
+# no Postgres, o schema delas tem o mesmo nome do schema UC → app/.env: PG_SCHEMA_ANALITICO
+SCHEMA_ANALITICO = SCHEMA
+SYNCED = {  # nome da synced table → tabela Delta de origem
+    "cadastro_equipamentos": "equipamentos",
+    "saude_equipamentos": "gold_saude_equipamentos",
+    "kpis_manutencao": "gold_kpis_manutencao",
+    "telemetria_diaria": "gold_telemetria_diaria",
+}
 
 # Tabelas Delta (Lakehouse)
 T_EQUIPAMENTOS = f"{CATALOGO}.{SCHEMA}.equipamentos"
@@ -63,6 +71,28 @@ WAREHOUSE_ID = dbutils.widgets.get("warehouse_id").strip()
 if not WAREHOUSE_ID:
     _serverless = [wh for wh in w.warehouses.list() if wh.enable_serverless_compute]
     WAREHOUSE_ID = _serverless[0].id if _serverless else ""
+
+
+def _resolver_lakebase(projeto: str):
+    """Projeto criado na UI: aceita o ID ou o nome de exibição e acha o endpoint read-write do branch production."""
+    endpoint = f"projects/{projeto}/branches/production/endpoints/primary"
+    try:
+        pg = w.postgres
+        try:
+            projeto = pg.get_project(name=f"projects/{projeto}").name.split("/")[-1]
+        except Exception:  # não é um ID — procura pelo nome de exibição
+            achados = [p.name.split("/")[-1] for p in pg.list_projects() if p.status and p.status.display_name == projeto]
+            projeto = achados[0] if achados else projeto
+        rw = [e.name for e in pg.list_endpoints(parent=f"projects/{projeto}/branches/production")
+              if e.status and e.status.endpoint_type and e.status.endpoint_type.value.endswith("READ_WRITE")]
+        endpoint = rw[0] if rw else endpoint
+    except Exception:  # SDK antigo (sem w.postgres) ou projeto ainda não criado: os nomes padrão bastam
+        pass
+    return projeto, endpoint
+
+
+PROJETO, ENDPOINT_PROD = _resolver_lakebase(PROJETO)
+BRANCH_PROD = f"projects/{PROJETO}/branches/production"
 
 # COMMAND ----------
 
@@ -136,7 +166,7 @@ print(f"""
 🐘 Projeto Lakebase ... {PROJETO}
    Branch produção .... {BRANCH_PROD}
    Endpoint ........... {ENDPOINT_PROD}
-   Database ........... {DATABASE}  (schemas: {SCHEMA_OLTP} = OLTP, {SCHEMA_ANALITICO} = synced)
+   Database ........... {DATABASE}  (schemas Postgres: {SCHEMA_OLTP} = OLTP, {SCHEMA_ANALITICO} = synced tables)
 📚 Catálogo Lakebase .. {CATALOGO_LAKEBASE}
 🏭 SQL Warehouse ...... {WAREHOUSE_ID or '⚠️ nenhum warehouse serverless encontrado'}
 """)

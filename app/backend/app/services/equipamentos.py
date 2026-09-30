@@ -1,4 +1,4 @@
-"""Equipamentos = cadastro mestre + saúde calculada no Lakehouse (synced tables no schema `analitico`).
+"""Equipamentos = cadastro mestre + saúde calculada no Lakehouse (synced tables — Passo 5).
 
 Antes do Passo 5 as synced tables não existem: usamos o CSV embutido na imagem (fonte = CSV_LOCAL).
 """
@@ -23,10 +23,10 @@ def _csv() -> tuple[dict, ...]:
 
 
 def _cadastro() -> tuple[list[dict], bool]:
-    if db.analitico_disponivel("equipamentos"):
+    if db.analitico_disponivel("cadastro_equipamentos"):
         linhas = db.consultar(
             "SELECT tag, nome, tipo, unidade, sistema, criticidade, fabricante, modelo, potencia_kw, data_instalacao "
-            "FROM analitico.equipamentos"
+            f"FROM {db.synced('cadastro_equipamentos')}"
         )
         return linhas, True
     return [dict(l) for l in _csv()], False
@@ -37,7 +37,7 @@ def _saude() -> dict[str, dict]:
         return {}
     linhas = db.consultar(
         "SELECT tag, health_score, risco, prob_falha_30d, principal_sinal, recomendacao, atualizado_em "
-        "FROM analitico.saude_equipamentos"
+        f"FROM {db.synced('saude_equipamentos')}"
     )
     return {l["tag"]: l for l in linhas}
 
@@ -73,6 +73,6 @@ def tendencia(tag: str) -> list[dict]:
         return []
     return db.consultar(
         "SELECT data, vibracao_mm_s, temperatura_c, pressao_bar, corrente_a "
-        "FROM analitico.telemetria_diaria WHERE tag = %s ORDER BY data",
+        f"FROM {db.synced('telemetria_diaria')} WHERE tag = %s ORDER BY data",
         (tag,),
     )

@@ -143,4 +143,4 @@ GROUP BY ALL ORDER BY tag, dia
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ✅ **Lakehouse pronto.** Próximo passo: [**Passo 1 — criar o projeto Lakebase**](../01_Criar_Projeto_Lakebase/01_criar_projeto_lakebase).
+# MAGIC ✅ **Lakehouse pronto.** Próximo passo: **Passo 1 — criar o projeto Lakebase pela UI** (`01_Criar_Projeto_Lakebase/README.md`).

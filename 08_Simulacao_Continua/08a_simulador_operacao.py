@@ -11,7 +11,7 @@
 # MAGIC | `avancos_por_minuto` | 60 | passos de workflow por minuto — cada OS precisa de 5; acima de 5 × `os_por_minuto` o backlog fica estável |
 # MAGIC | `duracao_min` | 60 | `0` = até cancelar o job |
 # MAGIC
-# MAGIC 🧠 **Comportamento realista:** equipamentos com risco **ALTO/CRÍTICO** no Lakehouse (synced table `analitico.saude_equipamentos`)
+# MAGIC 🧠 **Comportamento realista:** equipamentos com risco **ALTO/CRÍTICO** no Lakehouse (synced table `saude_equipamentos`)
 # MAGIC recebem mais OS corretivas — e cada corretiva aberta reduz o health score na próxima volta do enriquecimento (Passo 8b).
 # MAGIC
 # MAGIC > ▶️ Roda como a tarefa `simular_operacao` do job **Passo 8 · Simulação contínua** (em paralelo com o `08b`).
@@ -89,9 +89,9 @@ def carregar_contexto(conn):
             tecnicos.setdefault(unidade, []).append(uid)
         elif papel == "SUPERVISOR":
             supervisores[unidade] = uid
-    equipamentos = conn.run("""
+    equipamentos = conn.run(f"""
         SELECT e.tag, e.nome, e.tipo, e.unidade, coalesce(s.risco, 'BAIXO')
-        FROM analitico.equipamentos e LEFT JOIN analitico.saude_equipamentos s USING (tag)""")
+        FROM {SCHEMA_ANALITICO}.cadastro_equipamentos e LEFT JOIN {SCHEMA_ANALITICO}.saude_equipamentos s USING (tag)""")
     return tecnicos, supervisores, equipamentos
 
 

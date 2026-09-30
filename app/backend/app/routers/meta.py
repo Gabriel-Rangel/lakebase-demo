@@ -13,9 +13,13 @@ router = APIRouter(prefix="/api", tags=["meta"])
 
 
 def _partes_endpoint() -> dict:
-    partes = (settings.lakebase_endpoint or "").split("/")
+    try:
+        endpoint = db.endpoint_lakebase()
+    except Exception:  # sem permissão para listar projetos etc. — a página continua funcionando
+        endpoint = None
+    partes = (endpoint or "").split("/")
     mapa = dict(zip(partes[::2], partes[1::2])) if len(partes) >= 2 else {}
-    return {"projeto": mapa.get("projects"), "branch": mapa.get("branches"), "endpoint": settings.lakebase_endpoint}
+    return {"projeto": mapa.get("projects"), "branch": mapa.get("branches"), "endpoint": endpoint}
 
 
 @router.get("/health")
@@ -44,11 +48,12 @@ def meta():
 
 
 def _endpoint_info():
-    if not (settings.lakebase_endpoint and db.tem_credencial_databricks()):
+    endpoint = _partes_endpoint()["endpoint"]
+    if not (endpoint and db.tem_credencial_databricks()):
         return None
 
     def _ler():
-        st = db.workspace().postgres.get_endpoint(name=settings.lakebase_endpoint).status
+        st = db.workspace().postgres.get_endpoint(name=endpoint).status
         return {
             "estado": st.current_state.value if st.current_state else "DESCONHECIDO",
             "min_cu": st.autoscaling_limit_min_cu,
@@ -77,12 +82,13 @@ def conexao():
         FROM pg_class c
         JOIN pg_namespace n ON n.oid = c.relnamespace
         LEFT JOIN pg_stat_all_tables s ON s.relid = c.oid
-        WHERE c.relkind IN ('r', 'p', 'v', 'm') AND n.nspname IN ('operacao', 'analitico')
+        WHERE c.relkind IN ('r', 'p', 'v', 'm') AND n.nspname IN ('operacao', %s)
         ORDER BY 1, 2
-        """
+        """,
+        (db.SCHEMA_ANALITICO,),
     )
     for t in tabelas:
-        t["tipo"] = "SYNCED" if t["schema"] == "analitico" else "OLTP"
+        t["tipo"] = "OLTP" if t["schema"] == "operacao" else "SYNCED"
     synced = db.tabelas_analiticas()
     existentes = [v for v in synced.values() if v["existe"]]
     stats = db.pool().get_stats()

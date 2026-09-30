@@ -1,6 +1,8 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC # 3️⃣ Passo 3b · Transacional ⨝ Analítico na mesma consulta
+# MAGIC # 3️⃣ Passo 3.4 · Transacional ⨝ Analítico na mesma consulta
+# MAGIC
+# MAGIC Pré-requisito: catálogo `energia_lakebase` criado na UI (Passo 3.1) — o nome precisa bater com o widget `catalogo_lakebase`.
 # MAGIC
 # MAGIC Aqui está o "único ecossistema": **uma consulta SQL** junta
 # MAGIC - as **ordens de serviço** que acabaram de ser gravadas pelo app no **Lakebase** (catálogo `energia_lakebase`), com

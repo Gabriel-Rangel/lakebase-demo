@@ -314,9 +314,9 @@ export default function Conexao() {
           {!c.privilegios_analitico_ok && (
             <Alert variant="warning">
               <ShieldAlert />
-              <AlertTitle>Permissão pendente no schema analitico</AlertTitle>
+              <AlertTitle>Permissão pendente nas synced tables</AlertTitle>
               <AlertDescription>
-                O app ainda não tem SELECT no schema analitico — rode a célula de GRANT do Passo 5
+                A role energia_app ainda não tem SELECT nas synced tables — rode o GRANT do Passo 5 no SQL Editor
               </AlertDescription>
             </Alert>
           )}

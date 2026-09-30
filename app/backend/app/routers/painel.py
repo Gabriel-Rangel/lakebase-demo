@@ -27,10 +27,10 @@ def kpis():
     lakehouse = None
     if db.analitico_disponivel("kpis_manutencao"):
         por_unidade = db.consultar(
-            """
+            f"""
             SELECT DISTINCT ON (unidade) unidade, data_referencia, disponibilidade_pct, mttr_horas, backlog_os,
                    equipamentos_risco_alto, health_score_medio, atualizado_em
-            FROM analitico.kpis_manutencao ORDER BY unidade, data_referencia DESC
+            FROM {db.synced('kpis_manutencao')} ORDER BY unidade, data_referencia DESC
             """
         )
         lakehouse = {

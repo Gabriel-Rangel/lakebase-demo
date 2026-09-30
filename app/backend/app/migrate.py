@@ -48,8 +48,8 @@ def main() -> int:
                 continue
             with conn.transaction():
                 conn.execute(arquivo.read_text(encoding="utf-8"))
-                conn.execute(
-                    "INSERT INTO operacao.schema_migrations (versao, nome) VALUES (%s, %s)",
+                conn.execute(  # os arquivos também se auto-registram (Passo 2 via SQL Editor)
+                    "INSERT INTO operacao.schema_migrations (versao, nome) VALUES (%s, %s) ON CONFLICT (versao) DO NOTHING",
                     (versao, arquivo.stem),
                 )
             print(f"   ✅ {arquivo.name} aplicada")

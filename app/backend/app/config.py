@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     # password = role Postgres nativa com senha (PGUSER/PGPASSWORD) — "só troque a connection string"
     # profile  = seu usuário via perfil do Databricks CLI (somente com o backend rodando no host, fora do Docker)
     lakebase_auth_mode: Literal["oauth", "password", "profile"] = "oauth"
-    # projects/<projeto>/branches/<branch>/endpoints/<endpoint> — usado para gerar o token e descobrir o host
+    # projects/<projeto>/branches/<branch>/endpoints/<endpoint> — opcional: se vazio, é descoberto pelo PGHOST
     lakebase_endpoint: Optional[str] = None
 
     pghost: Optional[str] = None
@@ -35,6 +35,8 @@ class Settings(BaseSettings):
 
     # Role dona dos objetos do app (as migrações rodam com SET ROLE)
     db_owner_role: str = "energia_app"
+    # Schema Postgres das synced tables (Passo 5) = nome do schema UC onde elas foram criadas na UI
+    pg_schema_analitico: str = "lakebase_workshop"
     migrate_target: int = 2
 
     app_ambiente: str = "produção"

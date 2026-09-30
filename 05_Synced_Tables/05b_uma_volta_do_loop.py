@@ -73,7 +73,7 @@ if dbutils.widgets.get("rodar_gold") == "sim":
 
 # MAGIC %md
 # MAGIC ## 3. Refresh das synced tables
-# MAGIC Cada synced table tem um pipeline serverless. Disparamos um *update*: no modo TRIGGERED só as linhas alteradas
+# MAGIC Equivale ao botão **Sync now** de cada synced table no Catalog Explorer. Cada synced table tem um pipeline serverless. Disparamos um *update*: no modo TRIGGERED só as linhas alteradas
 # MAGIC (Change Data Feed) são aplicadas no Postgres.
 
 # COMMAND ----------
@@ -81,12 +81,11 @@ if dbutils.widgets.get("rodar_gold") == "sim":
 import time
 from databricks.sdk.service.pipelines import UpdateInfoState
 
-TABELAS = ["equipamentos", "saude_equipamentos", "kpis_manutencao", "telemetria_diaria"]
 updates = {}
-for nome in TABELAS:
-    st = w.postgres.get_synced_table(name=f"synced_tables/{CATALOGO_LAKEBASE}.{SCHEMA_ANALITICO}.{nome}").status
-    if nome == "equipamentos":
+for nome in SYNCED:
+    if nome == "cadastro_equipamentos":
         continue  # cadastro mestre (SNAPSHOT) — não muda no loop
+    st = w.postgres.get_synced_table(name=f"synced_tables/{CATALOGO}.{SCHEMA}.{nome}").status
     updates[nome] = (st.pipeline_id, w.pipelines.start_update(pipeline_id=st.pipeline_id).update_id)
     print(f"⏳ {nome}: update {updates[nome][1]}")
 
@@ -115,6 +114,6 @@ executar_script_lakebase([
 top = executar_sql_lakebase(
     f"SELECT tag, health_score, risco, principal_sinal FROM {SCHEMA_ANALITICO}.saude_equipamentos ORDER BY health_score LIMIT 5"
 )
-print("🐘 Lakebase — analitico.saude_equipamentos (o que o app enxerga agora):")
+print(f"🐘 Lakebase — {SCHEMA_ANALITICO}.saude_equipamentos (o que o app enxerga agora):")
 for t in top:
     print(f"   {t[0]:14s} score={t[1]:5.1f} {t[2]:8s} {t[3]}")

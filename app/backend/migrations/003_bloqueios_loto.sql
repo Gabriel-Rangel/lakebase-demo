@@ -6,10 +6,12 @@
 -- Produção continua na versão 2 até você decidir promover a mudança.
 -- =============================================================================
 
-ALTER TABLE operacao.permissoes_trabalho
-  ADD COLUMN requer_loto boolean NOT NULL DEFAULT false;
+SET ROLE energia_app;
 
-CREATE TABLE operacao.bloqueios_loto (
+ALTER TABLE operacao.permissoes_trabalho
+  ADD COLUMN IF NOT EXISTS requer_loto boolean NOT NULL DEFAULT false;
+
+CREATE TABLE IF NOT EXISTS operacao.bloqueios_loto (
   id                bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   permissao_id      bigint NOT NULL REFERENCES operacao.permissoes_trabalho (id),
   ponto_isolamento  text NOT NULL,
@@ -22,7 +24,9 @@ CREATE TABLE operacao.bloqueios_loto (
 );
 
 -- um cadeado físico não pode estar aplicado em dois pontos ao mesmo tempo
-CREATE UNIQUE INDEX loto_cadeado_em_uso ON operacao.bloqueios_loto (cadeado_numero) WHERE removido_em IS NULL;
-CREATE INDEX loto_permissao_idx ON operacao.bloqueios_loto (permissao_id);
+CREATE UNIQUE INDEX IF NOT EXISTS loto_cadeado_em_uso ON operacao.bloqueios_loto (cadeado_numero) WHERE removido_em IS NULL;
+CREATE INDEX IF NOT EXISTS loto_permissao_idx ON operacao.bloqueios_loto (permissao_id);
 
 COMMENT ON TABLE operacao.bloqueios_loto IS 'Bloqueios de energia (LOTO) aplicados durante a execução de uma PT';
+
+INSERT INTO operacao.schema_migrations (versao, nome) VALUES (3, '003_bloqueios_loto') ON CONFLICT (versao) DO NOTHING;

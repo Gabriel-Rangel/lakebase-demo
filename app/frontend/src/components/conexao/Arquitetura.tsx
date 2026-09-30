@@ -136,7 +136,7 @@ export function Arquitetura({ c }: { c: Conexao }) {
         {synced.length === 0 && (
           <p className="text-muted-foreground">Nenhuma synced table ainda — chegam no Passo 5.</p>
         )}
-        <Par k="SELECT" v={c.privilegios_analitico_ok ? "ok no schema analitico" : "pendente (GRANT)"} mono={false} />
+        <Par k="SELECT" v={c.privilegios_analitico_ok ? "ok nas synced tables" : "pendente (GRANT)"} mono={false} />
       </Caixa>
     </div>
   );

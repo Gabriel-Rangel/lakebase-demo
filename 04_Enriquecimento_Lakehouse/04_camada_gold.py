@@ -199,4 +199,4 @@ display(spark.sql(f"SELECT * FROM {T_GOLD_KPIS} WHERE data_referencia = current_
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ✅ **Checkpoint:** 1 equipamento 🔴 CRITICO, 3 🟠 ALTO. Próximo: [**Passo 5 — synced tables**](../05_Synced_Tables/05a_criar_synced_tables): devolver o gold ao Lakebase.
+# MAGIC ✅ **Checkpoint:** 1 equipamento 🔴 CRITICO, 3 🟠 ALTO. Próximo: **Passo 5 — synced tables pela UI** (`05_Synced_Tables/README.md`): devolver o gold ao Lakebase.

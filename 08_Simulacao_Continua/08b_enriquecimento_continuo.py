@@ -6,7 +6,7 @@
 # MAGIC
 # MAGIC ```
 # MAGIC  ┌──► ① gold (Passo 4): lê as OS ao vivo via Unity Catalog + telemetria Delta → MERGE health score / KPIs
-# MAGIC  │    ② refresh das synced tables (Passo 5): só o que mudou (Change Data Feed) → analitico.* no Lakebase
+# MAGIC  │    ② refresh das synced tables (Passo 5): só o que mudou (Change Data Feed) → Lakebase
 # MAGIC  │    ③ app mostra backlog, MTTR, disponibilidade e risco atualizados
 # MAGIC  └──── espera `intervalo_min` e repete
 # MAGIC ```
@@ -50,7 +50,7 @@ from databricks.sdk.service.pipelines import UpdateInfoState
 
 FINAIS = {UpdateInfoState.COMPLETED, UpdateInfoState.FAILED, UpdateInfoState.CANCELED}
 PIPELINES = {
-    nome: w.postgres.get_synced_table(name=f"synced_tables/{CATALOGO_LAKEBASE}.{SCHEMA_ANALITICO}.{nome}").status.pipeline_id
+    nome: w.postgres.get_synced_table(name=f"synced_tables/{CATALOGO}.{SCHEMA}.{nome}").status.pipeline_id
     for nome in SYNCED_TRIGGERED
 }
 print("pipelines das synced tables:", PIPELINES)
